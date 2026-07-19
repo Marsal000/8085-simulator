@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>8085 Microprocessor Kit</title>
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/seven-segment');
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --pcb-base: #115c26;
+            --pcb-trace: #0c421b;
+            --display-bg: #0a0000;
+            --display-lit: #ff1a1a;
+            --display-glow: #ff0000;
+            --display-dim: #250303;
+            --key-blue: #1976d2;
+            --key-blue-dark: #0d47a1;
+            --key-black: #1e1e1e;
+            --key-black-dark: #000000;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            touch-action: manipulation;
+        }
+
+        body {
+            background-color: #111 !important;
+            background-image: none !important;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .casing {
+            width: 100%;
+            max-width: 850px; /* Reduced from 1000px */
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 
+                inset 0 0 10px rgba(0,0,0,0.8),
+                inset 2px 2px 5px rgba(255,255,255,0.1),
+                10px 20px 40px rgba(0,0,0,0.9);
+            border: 2px solid rgba(0,0,0,0.8);
+        }
+
+        .pcb {
+            background-color: #0a3817; /* User specified PCB color */
+            background-image: url('image_6d477f.png');
+            background-repeat: repeat;
+            border-radius: 4px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.85);
+            border: 2px solid #06210d;
+            padding: 30px; /* Reduced from 40px */
+            position: relative;
+        }
+
+        .screw {
+            width: 16px; height: 16px;
+            background: radial-gradient(circle, #777, #333);
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.8), inset 0 0 2px #000;
+        }
+        .screw::after {
+            content: ''; position: absolute; top: 7px; left: 2px; right: 2px; height: 2px;
+            background: rgba(0,0,0,0.8); transform: rotate(45deg);
+        }
+        .screw.tl { top: 10px; left: 10px; }
+        .screw.tr { top: 10px; right: 10px; transform: rotate(30deg); }
+        .screw.bl { bottom: 10px; left: 10px; transform: rotate(70deg); }
+        .screw.br { bottom: 10px; right: 10px; transform: rotate(-20deg); }
+
+        .board-layout {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .controls {
+            width: 100%;
+            max-width: 720px; /* Reduced from 850px */
+            display: flex;
+            flex-direction: column;
+            gap: 25px; /* Reduced from 35px */
+            margin: 0 auto;
+        }
+
+        .display-housing {
+            background: #000;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 2px solid #222;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.7);
+        }
+
+        .acrylic-plate {
+            background: var(--display-bg);
+            border-radius: 4px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 20px #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .acrylic-plate::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 45%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.06), transparent);
+            pointer-events: none;
+        }
+
+        .digits-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 20px; /* Reduced from 25px */
+            z-index: 2;
+            font-family: 'Seven Segment', monospace;
+            font-size: 75px; /* Scaled down from 95px */
+            font-style: normal;
+        }
+
+        .display-block {
+            display: flex;
+            gap: 8px;
+        }
+
+        .digit-slot {
+            position: relative;
+            width: 0.6em; 
+            text-align: center;
+        }
+
+        .display-bg-text {
+            color: var(--display-dim);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .display-fg-text {
+            color: var(--display-lit);
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            pointer-events: none;
+        }
+
+        .keypad {
+            display: flex;
+            gap: 20px;
+        }
+
+        .keys-blue { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; flex: 1.2; }
+        .keys-black { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; flex: 1.6; }
+
+        .key {
+            border-radius: 6px;
+            box-shadow: 2px 4px 6px rgba(0,0,0,0.6);
+            color: #fff;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            height: 55px; /* Reduced from 70px */
+            cursor: pointer;
+            font-weight: bold; font-size: 16px; /* Reduced from 20px */
+            user-select: none; transition: transform 0.05s, box-shadow 0.05s, filter 0.05s;
+        }
+
+        .key.black {
+            background: linear-gradient(135deg, #2a2a2a, var(--key-black-dark));
+            border-top: 1px solid #555; border-left: 1px solid #555;
+            border-bottom: 2px solid #000; border-right: 2px solid #000;
+        }
+
+        .key.blue {
+            background: linear-gradient(135deg, var(--key-blue), var(--key-blue-dark));
+            border-top: 1px solid #64b5f6; border-left: 1px solid #64b5f6;
+            border-bottom: 2px solid #002244; border-right: 2px solid #002244;
+            font-size: 12px; /* Reduced from 15px */
+            text-align: center; line-height: 1.2;
+        }
+
+        .key span { font-size: 10px; color: #aaa; margin-top: 2px; } /* Reduced from 12px */
+        
+        .key:active, .key.simulated-active { 
+            transform: translate(1px, 3px); 
+            box-shadow: 0 1px 1px rgba(0,0,0,0.6); 
+            border-bottom-width: 1px; border-right-width: 1px;
+            filter: brightness(0.85);
+        }
+
+        @media (max-width: 850px) {
+            body { padding: 0 !important; }
+            .casing { border-radius: 0; padding: 10px; min-height: 100vh; max-width: 100%; border: none; }
+            .pcb { padding: 15px 10px; border: none; display: flex; flex-direction: column; justify-content: center; min-height: 100vh;}
+            .screw { display: none !important; }
+            .board-layout { width: 100%; margin: 0; flex-direction: column;}
+            
+            .controls { width: 100%; max-width: 500px; margin: 0 auto; gap: 20px; }
+            .digits-wrapper { font-size: 55px; gap: 15px; }
+            .display-block { gap: 4px; }
+            
+            .keypad { flex-direction: column; }
+            .keys-blue, .keys-black { gap: 10px; }
+            .key { height: 60px; font-size: 18px; border-radius: 6px; }
+            .key.blue { font-size: 13px; }
+            .key span { font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="casing">
+    <div class="pcb">
+        <div class="screw tl"></div><div class="screw tr"></div>
+        <div class="screw bl"></div><div class="screw br"></div>
+        
+        <div class="board-layout">
+            <div class="controls">
+                
+                <div class="display-housing">
+                    <div class="acrylic-plate">
+                        <div class="digits-wrapper" id="display-digits">
+                            <!-- Address Block -->
+                            <div class="display-block" id="block-addr">
+                            </div>
+                            
+                            <!-- Data Block -->
+                            <div class="display-block" id="block-data">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="keypad">
+                    <!-- Specific Blue Keys -->
+                    <div class="keys-blue">
+                        <div class="key blue cmd" data-cmd="RESET">RESET</div>
+                        <div class="key blue">VCT<br>INT</div>
+                        <div class="key blue">SHIFT</div>
+                        
+                        <div class="key blue cmd" data-cmd="EXREG">EXREG<br>SI</div>
+                        <div class="key blue">INS<br>DATA</div>
+                        <div class="key blue">DEL<br>DATA</div>
+                        
+                        <div class="key blue cmd" data-cmd="GO">DEL<br>GO</div>
+                        <div class="key blue">INS<br>B.M</div>
+                        <div class="key blue cmd" data-cmd="EXMEM">REL<br>EXMEM</div>
+                        
+                        <div class="key blue cmd" data-cmd="PRE">STRING<br>PRE</div>
+                        <div class="key blue cmd" data-cmd="NEXT">MEMC<br>NEXT</div>
+                        <div class="key blue cmd" data-cmd="FILL">FILL<br>.</div>
+                    </div>
+
+                    <!-- Standard Hex Keys -->
+                    <div class="keys-black">
+                        <div class="key black hex" data-val="C">C</div>
+                        <div class="key black hex" data-val="D">D</div>
+                        <div class="key black hex" data-val="E">E</div>
+                        <div class="key black hex" data-val="F">F</div>
+
+                        <div class="key black hex" data-val="8">8<span>H</span></div>
+                        <div class="key black hex" data-val="9">9<span>L</span></div>
+                        <div class="key black hex" data-val="A">A</div>
+                        <div class="key black hex" data-val="B">B</div>
+
+                        <div class="key black hex" data-val="4">4<span>PCH</span></div>
+                        <div class="key black hex" data-val="5">5<span>PCL</span></div>
+                        <div class="key black hex" data-val="6">6<span>SPH</span></div>
+                        <div class="key black hex" data-val="7">7<span>SPL</span></div>
+
+                        <div class="key black hex" data-val="0">0</div>
+                        <div class="key black hex" data-val="1">1<span>TTY</span></div>
+                        <div class="key black hex" data-val="2">2<span>CRT</span></div>
+                        <div class="key black hex" data-val="3">3<span>I</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const addrBlock = document.getElementById('block-addr');
+    const dataBlock = document.getElementById('block-data');
+    
+    function createDigits(block, count, valStr) {
+        let html = '';
+        for (let i = 0; i < count; i++) {
+            const char = valStr[i] || ' ';
+            html += `
+                <div class="digit-slot">
+                    <div class="display-bg-text">8</div>
+                    <div class="display-fg-text">${char === ' ' ? '' : char}</div>
+                </div>
+            `;
+        }
+        block.innerHTML = html;
+    }
+
+    function updateDisplay(leftStr, rightStr) {
+        let leftPadded = leftStr.padStart(4, ' ').substring(leftStr.length > 4 ? leftStr.length - 4 : 0);
+        let rightPadded = rightStr.padStart(2, ' ').substring(rightStr.length > 2 ? rightStr.length - 2 : 0);
+        
+        createDigits(addrBlock, 4, leftPadded);
+        createDigits(dataBlock, 2, rightPadded);
+    }
+    
+    function blinkDisplay() {
+        addrBlock.style.opacity = '0';
+        dataBlock.style.opacity = '0';
+        setTimeout(() => {
+            addrBlock.style.opacity = '1';
+            dataBlock.style.opacity = '1';
+        }, 100);
+    }
+
+    const memory = new Uint8Array(65536); 
+    const registers = { A: 0, B: 0, C: 0, D: 0, E: 0, H: 0, L: 0 };
+    const regList = ['A', 'B', 'C', 'D', 'E', 'H', 'L'];
+    
+    let sysState = 'IDLE'; 
+    let addrBuffer = "";
+    let dataBuffer = "";
+    let currentAddress = 0x2000;
+    let selectedReg = '';
+
+    function toHexStr(num, padding) { return num.toString(16).toUpperCase().padStart(padding, '0'); }
+
+    class Emulator8085 {
+        constructor(mem, regs) {
+            this.mem = mem;
+            this.reg = regs; 
+            this.SP = 0xFFFF;
+            this.PC = 0x0000;
+            this.flags = { S:0, Z:0, AC:0, P:0, CY:0 };
+            this.halted = false;
+        }
+
+        getHL() { return (this.reg.H << 8) | this.reg.L; }
+        setHL(v) { this.reg.H = (v >> 8) & 0xFF; this.reg.L = v & 0xFF; }
+        
+        getPair(idx) {
+            if(idx === 0) return (this.reg.B << 8) | this.reg.C;
+            if(idx === 1) return (this.reg.D << 8) | this.reg.E;
+            if(idx === 2) return this.getHL();
+            if(idx === 3) return this.SP;
+        }
+        setPair(idx, v) {
+            v &= 0xFFFF;
+            if(idx === 0) { this.reg.B = (v >> 8) & 0xFF; this.reg.C = v & 0xFF; }
+            else if(idx === 1) { this.reg.D = (v >> 8) & 0xFF; this.reg.E = v & 0xFF; }
+            else if(idx === 2) { this.setHL(v); }
+            else if(idx === 3) { this.SP = v; }
+        }
+
+        getReg(idx) {
+            const r = ['B','C','D','E','H','L','M','A'];
+            if (r[idx] === 'M') return this.mem[this.getHL()];
+            return this.reg[r[idx]];
+        }
+        setReg(idx, v) {
+            v &= 0xFF;
+            const r = ['B','C','D','E','H','L','M','A'];
+            if (r[idx] === 'M') this.mem[this.getHL()] = v;
+            else this.reg[r[idx]] = v;
+        }
+
+        updateZSP(v) {
+            this.flags.Z = (v === 0) ? 1 : 0;
+            this.flags.S = (v & 0x80) ? 1 : 0;
+            let p = 0; for(let i=0; i<8; i++) p += (v>>i)&1;
+            this.flags.P = (p % 2 === 0) ? 1 : 0;
+        }
+
+        doALU(opc, val) {
+            let res, c = this.flags.CY;
+            switch(opc) {
+                case 0: // ADD
+                    res = this.reg.A + val;
+                    this.flags.AC = ((this.reg.A & 0x0F) + (val & 0x0F) > 0x0F) ? 1 : 0;
+                    this.flags.CY = (res > 0xFF) ? 1 : 0;
+                    this.reg.A = res & 0xFF;
+                    this.updateZSP(this.reg.A);
+                    break;
+                case 1: // ADC
+                    res = this.reg.A + val + c;
+                    this.flags.AC = ((this.reg.A & 0x0F) + (val & 0x0F) + c > 0x0F) ? 1 : 0;
+                    this.flags.CY = (res > 0xFF) ? 1 : 0;
+                    this.reg.A = res & 0xFF;
+                    this.updateZSP(this.reg.A);
+                    break;
+                case 2: // SUB
+                    res = this.reg.A - val;
+                    this.flags.AC = ((this.reg.A & 0x0F) - (val & 0x0F) >= 0) ? 1 : 0;
+                    this.flags.CY = (res < 0) ? 1 : 0;
+                    this.reg.A = (res + 256) & 0xFF;
+                    this.updateZSP(this.reg.A);
+                    break;
+                case 3: // SBB
+                    res = this.reg.A - val - c;
+                    this.flags.AC = ((this.reg.A & 0x0F) - (val & 0x0F) - c >= 0) ? 1 : 0;
+                    this.flags.CY = (res < 0) ? 1 : 0;
+                    this.reg.A = (res + 256) & 0xFF;
+                    this.updateZSP(this.reg.A);
+                    break;
+                case 4: // ANA
+                    this.reg.A &= val;
+                    this.flags.CY = 0; this.flags.AC = 1;
+                    this.updateZSP(this.reg.A);
+                    break;
+                case 5: // XRA
+                    this.reg.A ^= val;
+                    this.flags.CY = 0; this.flags.AC = 0;
+                    this.updateZSP(this.reg.A);
+                    break;
+                case 6: // ORA
+                    this.reg.A |= val;
+                    this.flags.CY = 0; this.flags.AC = 0;
+                    this.updateZSP(this.reg.A);
+                    break;
+                case 7: // CMP
+                    res = this.reg.A - val;
+                    this.flags.AC = ((this.reg.A & 0x0F) - (val & 0x0F) >= 0) ? 1 : 0;
+                    this.flags.CY = (res < 0) ? 1 : 0;
+                    this.updateZSP((res + 256) & 0xFF);
+                    break;
+            }
+        }
+
+        step() {
+            if (this.halted) return;
+            let op = this.mem[this.PC++];
+            
+            // 1. Standalone Direct Instructions
+            if (op === 0x00) return; // NOP
+            if (op === 0x76) { this.halted = true; return; } // HLT
+            if (op === 0x37) { this.flags.CY = 1; return; } // STC
+            if (op === 0x3F) { this.flags.CY ^= 1; return; } // CMC
+            if (op === 0x2F) { this.reg.A ^= 0xFF; return; } // CMA
+            if (op === 0x27) { // DAA
+                let add = 0, c = this.flags.CY;
+                if ((this.reg.A & 0x0F) > 9 || this.flags.AC) add |= 0x06;
+                if ((this.reg.A >> 4) > 9 || this.flags.CY || ((this.reg.A >> 4) >= 9 && (this.reg.A & 0x0F) > 9)) { add |= 0x60; c = 1; }
+                this.doALU(0, add); 
+                this.flags.CY = c;
+                return;
+            }
+            // Rotations
+            if (op === 0x07) { this.flags.CY = (this.reg.A >> 7)&1; this.reg.A = ((this.reg.A << 1) | this.flags.CY) & 0xFF; return; } // RLC
+            if (op === 0x0F) { this.flags.CY = this.reg.A & 1; this.reg.A = (this.reg.A >> 1) | (this.flags.CY << 7); return; } // RRC
+            if (op === 0x17) { let c = this.flags.CY; this.flags.CY = (this.reg.A >> 7)&1; this.reg.A = ((this.reg.A << 1) | c) & 0xFF; return; } // RAL
+            if (op === 0x1F) { let c = this.flags.CY; this.flags.CY = this.reg.A & 1; this.reg.A = (this.reg.A >> 1) | (c << 7); return; } // RAR
+            
+            // Exotic stack/reg instructions
+            if (op === 0xEB) { let tH = this.reg.H, tL = this.reg.L; this.reg.H = this.reg.D; this.reg.L = this.reg.E; this.reg.D = tH; this.reg.E = tL; return; } // XCHG
+            if (op === 0xE3) { // XTHL
+                let tL = this.reg.L, tH = this.reg.H;
+                this.reg.L = this.mem[this.SP]; this.reg.H = this.mem[(this.SP+1)&0xFFFF];
+                this.mem[this.SP] = tL; this.mem[(this.SP+1)&0xFFFF] = tH;
+                return;
+            }
+            if (op === 0xE9) { this.PC = this.getHL(); return; } // PCHL
+            if (op === 0xF9) { this.SP = this.getHL(); return; } // SPHL
+
+            // 16-Bit Load / Store Direct
+            if (op === 0x3A) { let a = this.mem[this.PC++] | (this.mem[this.PC++]<<8); this.reg.A = this.mem[a]; return; } // LDA
+            if (op === 0x32) { let a = this.mem[this.PC++] | (this.mem[this.PC++]<<8); this.mem[a] = this.reg.A; return; } // STA
+            if (op === 0x2A) { let a = this.mem[this.PC++] | (this.mem[this.PC++]<<8); this.reg.L = this.mem[a]; this.reg.H = this.mem[(a+1)&0xFFFF]; return; } // LHLD
+            if (op === 0x22) { let a = this.mem[this.PC++] | (this.mem[this.PC++]<<8); this.mem[a] = this.reg.L; this.mem[(a+1)&0xFFFF] = this.reg.H; return; } // SHLD
+
+            // Load / Store Indirect
+            if (op === 0x0A) { this.reg.A = this.mem[this.getPair(0)]; return; } // LDAX B
+            if (op === 0x1A) { this.reg.A = this.mem[this.getPair(1)]; return; } // LDAX D
+            if (op === 0x02) { this.mem[this.getPair(0)] = this.reg.A; return; } // STAX B
+            if (op === 0x12) { this.mem[this.getPair(1)] = this.reg.A; return; } // STAX D
+
+            // 2. Opcode Decoded Blocks (Bitmasked)
+            
+            // MOV r1, r2 (01 ddd sss)
+            if ((op & 0xC0) === 0x40 && op !== 0x76) {
+                this.setReg((op >> 3) & 7, this.getReg(op & 7)); return;
+            }
+            // MVI r, data (00 ddd 110)
+            if ((op & 0xC7) === 0x06) {
+                this.setReg((op >> 3) & 7, this.mem[this.PC++]); return;
+            }
+            // ALU r (10 ooo sss)
+            if ((op & 0xC0) === 0x80) {
+                this.doALU((op >> 3) & 7, this.getReg(op & 7)); return;
+            }
+            // ALU I (11 ooo 110)
+            if ((op & 0xC7) === 0xC6) {
+                this.doALU((op >> 3) & 7, this.mem[this.PC++]); return;
+            }
+            // LXI rp, data16 (00 pp0 001)
+            if ((op & 0xCF) === 0x01) {
+                let v = this.mem[this.PC++] | (this.mem[this.PC++]<<8);
+                this.setPair((op >> 4) & 3, v); return;
+            }
+            // INX rp (00 pp0 011)
+            if ((op & 0xCF) === 0x03) {
+                let rp = (op >> 4) & 3;
+                this.setPair(rp, this.getPair(rp) + 1); return;
+            }
+            // DCX rp (00 pp1 011)
+            if ((op & 0xCF) === 0x0B) {
+                let rp = (op >> 4) & 3;
+                this.setPair(rp, this.getPair(rp) - 1); return;
+            }
+            // DAD rp (00 pp1 001)
+            if ((op & 0xCF) === 0x09) {
+                let res = this.getHL() + this.getPair((op >> 4) & 3);
+                this.flags.CY = (res > 0xFFFF) ? 1 : 0;
+                this.setHL(res); return;
+            }
+            // PUSH rp (11 pp0 101)
+            if ((op & 0xCF) === 0xC5) {
+                let rp = (op >> 4) & 3;
+                let val = (rp === 3) 
+                    ? (this.reg.A << 8) | (this.flags.S<<7 | this.flags.Z<<6 | this.flags.AC<<4 | this.flags.P<<2 | 1<<1 | this.flags.CY)
+                    : this.getPair(rp);
+                this.SP = (this.SP - 1) & 0xFFFF; this.mem[this.SP] = (val >> 8) & 0xFF;
+                this.SP = (this.SP - 1) & 0xFFFF; this.mem[this.SP] = val & 0xFF;
+                return;
+            }
+            // POP rp (11 pp0 001)
+            if ((op & 0xCF) === 0xC1) {
+                let rp = (op >> 4) & 3;
+                let val = this.mem[this.SP] | (this.mem[(this.SP+1)&0xFFFF]<<8);
+                this.SP = (this.SP + 2) & 0xFFFF;
+                if (rp === 3) { // PSW
+                    this.reg.A = (val >> 8) & 0xFF;
+                    let f = val & 0xFF;
+                    this.flags.S = (f >> 7) & 1; this.flags.Z = (f >> 6) & 1;
+                    this.flags.AC = (f >> 4) & 1; this.flags.P = (f >> 2) & 1;
+                    this.flags.CY = f & 1;
+                } else {
+                    this.setPair(rp, val);
+                }
+                return;
+            }
+            // INR r (00 ddd 100)
+            if ((op & 0xC7) === 0x04) {
+                let d = (op >> 3) & 7;
+                let val = (this.getReg(d) + 1) & 0xFF;
+                this.setReg(d, val);
+                this.flags.AC = ((val & 0x0F) === 0x00) ? 1 : 0;
+                this.updateZSP(val); return;
+            }
+            // DCR r (00 ddd 101)
+            if ((op & 0xC7) === 0x05) {
+                let d = (op >> 3) & 7;
+                let val = (this.getReg(d) - 1) & 0xFF;
+                this.setReg(d, val);
+                this.flags.AC = ((val & 0x0F) === 0x0F) ? 0 : 1;
+                this.updateZSP(val); return;
+            }
+            
+            // Jump, Call, Return Processing
+            if (op === 0xC3) { this.PC = this.mem[this.PC] | (this.mem[this.PC+1]<<8); return; }
+            if (op === 0xCD) {
+                let next = (this.PC + 2) & 0xFFFF;
+                let addr = this.mem[this.PC++] | (this.mem[this.PC++]<<8);
+                this.SP = (this.SP - 1) & 0xFFFF; this.mem[this.SP] = (next >> 8) & 0xFF;
+                this.SP = (this.SP - 1) & 0xFFFF; this.mem[this.SP] = next & 0xFF;
+                this.PC = addr; return;
+            }
+            if (op === 0xC9) {
+                this.PC = this.mem[this.SP] | (this.mem[(this.SP+1)&0xFFFF]<<8);
+                this.SP = (this.SP + 2) & 0xFFFF; return;
+            }
+            
+            // RST (11 nnn 111)
+            if ((op & 0xC7) === 0xC7) {
+                let n = (op >> 3) & 7;
+                this.SP = (this.SP - 1) & 0xFFFF; this.mem[this.SP] = (this.PC >> 8) & 0xFF;
+                this.SP = (this.SP - 1) & 0xFFFF; this.mem[this.SP] = this.PC & 0xFF;
+                this.PC = n * 8; return;
+            }
+
+            // Conditional Branch Decoding
+            let cond = false;
+            let c = (op >> 3) & 7;
+            if (c === 0) cond = !this.flags.Z;       // NZ
+            else if (c === 1) cond = this.flags.Z;   // Z
+            else if (c === 2) cond = !this.flags.CY; // NC
+            else if (c === 3) cond = this.flags.CY;  // C
+            else if (c === 4) cond = !this.flags.P;  // PO
+            else if (c === 5) cond = this.flags.P;   // PE
+            else if (c === 6) cond = !this.flags.S;  // P (Plus)
+            else if (c === 7) cond = this.flags.S;   // M (Minus)
+            
+            // Jcond (11 ccc 010)
+            if ((op & 0xC7) === 0xC2) {
+                let addr = this.mem[this.PC++] | (this.mem[this.PC++]<<8);
+                if (cond) this.PC = addr; return;
+            }
+            // Ccond (11 ccc 100)
+            if ((op & 0xC7) === 0xC4) {
+                let next = (this.PC + 2) & 0xFFFF;
+                let addr = this.mem[this.PC++] | (this.mem[this.PC++]<<8);
+                if (cond) {
+                    this.SP = (this.SP - 1) & 0xFFFF; this.mem[this.SP] = (next >> 8) & 0xFF;
+                    this.SP = (this.SP - 1) & 0xFFFF; this.mem[this.SP] = next & 0xFF;
+                    this.PC = addr;
+                }
+                return;
+            }
+            // Rcond (11 ccc 000)
+            if ((op & 0xC7) === 0xC0) {
+                if (cond) {
+                    this.PC = this.mem[this.SP] | (this.mem[(this.SP+1)&0xFFFF]<<8);
+                    this.SP = (this.SP + 2) & 0xFFFF;
+                }
+                return;
+            }
+        }
+    }
+
+    const cpu = new Emulator8085(memory, registers);
+
+    function run8085(startAddr) {
+        cpu.PC = startAddr;
+        cpu.halted = false;
+        let count = 0;
+        
+        // Execute up to 5,000,000 instructions to handle complex factorial/division loops
+        while(!cpu.halted && count < 5000000) {
+            cpu.step();
+            count++;
+        }
+        return cpu.halted ? 'HLT' : 'TIMEOUT';
+    }
+
+    function resetSystem() {
+        sysState = 'IDLE'; addrBuffer = ""; dataBuffer = "";
+        updateDisplay("    ", "  "); 
+        setTimeout(() => updateDisplay("-808", "5-"), 150);
+    }
+
+    function onHexInput(hex) {
+        if (sysState === 'IDLE') { blinkDisplay(); return; } 
+        
+        if (sysState === 'ADDR' || sysState === 'GO_ADDR') {
+            addrBuffer = (addrBuffer + hex).slice(-4);
+            updateDisplay(addrBuffer, "");
+        } 
+        else if (sysState === 'MEM_VIEW') {
+            dataBuffer = (dataBuffer + hex).slice(-2);
+            memory[currentAddress] = parseInt(dataBuffer, 16); 
+            updateDisplay(toHexStr(currentAddress, 4), dataBuffer);
+        }
+        else if (sysState === 'REG_SEL') {
+            const rMap = { '8':'H', '9':'L', 'A':'A', 'B':'B', 'C':'C', 'D':'D', 'E':'E' };
+            if (rMap[hex]) {
+                selectedReg = rMap[hex]; sysState = 'REG_VIEW';
+                dataBuffer = toHexStr(registers[selectedReg], 2);
+                updateDisplay(selectedReg + "   ", dataBuffer);
+            }
+        }
+        else if (sysState === 'REG_VIEW') {
+            dataBuffer = (dataBuffer + hex).slice(-2);
+            registers[selectedReg] = parseInt(dataBuffer, 16);
+            updateDisplay(selectedReg + "   ", dataBuffer);
+        }
+    }
+
+    function onCommandInput(cmd) {
+        if (cmd === 'RESET') { resetSystem(); } 
+        else if (cmd === 'EXMEM') {
+            sysState = 'ADDR'; addrBuffer = ""; updateDisplay("    ", "  ");
+        }
+        else if (cmd === 'NEXT') {
+            if (sysState === 'ADDR') {
+                if (addrBuffer.length > 0) currentAddress = parseInt(addrBuffer, 16);
+                sysState = 'MEM_VIEW';
+            } else if (sysState === 'MEM_VIEW') {
+                currentAddress = (currentAddress + 1) & 0xFFFF;
+            } else if (sysState === 'REG_VIEW') {
+                let idx = regList.indexOf(selectedReg);
+                selectedReg = regList[(idx + 1) % regList.length];
+                dataBuffer = toHexStr(registers[selectedReg], 2);
+                updateDisplay(selectedReg + "   ", dataBuffer);
+                return;
+            } else { blinkDisplay(); return; }
+            
+            dataBuffer = toHexStr(memory[currentAddress], 2);
+            updateDisplay(toHexStr(currentAddress, 4), dataBuffer);
+        }
+        else if (cmd === 'PRE') {
+            if (sysState === 'MEM_VIEW') {
+                currentAddress = (currentAddress - 1 + 65536) & 0xFFFF;
+                dataBuffer = toHexStr(memory[currentAddress], 2);
+                updateDisplay(toHexStr(currentAddress, 4), dataBuffer);
+            } else { blinkDisplay(); }
+        }
+        else if (cmd === 'EXREG') { sysState = 'REG_SEL'; updateDisplay("R   ", "  "); }
+        else if (cmd === 'GO') { sysState = 'GO_ADDR'; addrBuffer = ""; updateDisplay("GO  ", "  "); }
+        else if (cmd === 'FILL') {
+            if (sysState === 'GO_ADDR' && addrBuffer.length > 0) {
+                let startAddr = parseInt(addrBuffer, 16);
+                updateDisplay("EXEC", "  ");
+                setTimeout(() => {
+                    let status = run8085(startAddr);
+                    if (status === 'HLT') updateDisplay("SUCC", "ES");
+                    else updateDisplay("ERR ", "  "); 
+                    sysState = 'IDLE'; 
+                }, 50);
+            } else { blinkDisplay(); }
+        }
+        else { blinkDisplay(); }
+    }
+
+    function attachButtonEvent(btn, callback) {
+        btn.addEventListener('pointerdown', (e) => {
+            e.preventDefault(); 
+            btn.classList.add('simulated-active');
+            if (navigator.vibrate) navigator.vibrate(15);
+            callback();
+        });
+        btn.addEventListener('pointerup', () => btn.classList.remove('simulated-active'));
+        btn.addEventListener('pointerleave', () => btn.classList.remove('simulated-active'));
+    }
+
+    document.querySelectorAll('.hex').forEach(btn => attachButtonEvent(btn, () => onHexInput(btn.dataset.val)));
+    document.querySelectorAll('.cmd').forEach(btn => attachButtonEvent(btn, () => onCommandInput(btn.dataset.cmd)));
+
+    window.addEventListener('keydown', (e) => {
+        const key = e.key.toUpperCase();
+        const hexKeys = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];
+        
+        let t = null;
+        if (hexKeys.includes(key)) { onHexInput(key); t = document.querySelector(`.hex[data-val="${key}"]`); } 
+        else if (key === 'ESCAPE') { onCommandInput('RESET'); t = document.querySelector(`.cmd[data-cmd="RESET"]`); } 
+        else if (key === 'ENTER' || key === 'N') { onCommandInput('NEXT'); t = document.querySelector(`.cmd[data-cmd="NEXT"]`); } 
+        else if (key === 'X' || key === 'M') { onCommandInput('EXMEM'); t = document.querySelector(`.cmd[data-cmd="EXMEM"]`); } 
+        else if (key === 'P') { onCommandInput('PRE'); t = document.querySelector(`.cmd[data-cmd="PRE"]`); } 
+        else if (key === 'R') { onCommandInput('EXREG'); t = document.querySelector(`.cmd[data-cmd="EXREG"]`); } 
+        else if (key === 'G') { onCommandInput('GO'); t = document.querySelector(`.cmd[data-cmd="GO"]`); } 
+        else if (key === ' ') { onCommandInput('FILL'); t = document.querySelector(`.cmd[data-cmd="FILL"]`); }
+
+        if (t) {
+            t.classList.add('simulated-active');
+            setTimeout(() => t.classList.remove('simulated-active'), 100);
+        }
+    });
+
+    // Boot up sequence
+    setTimeout(resetSystem, 300);
+
+</script>
+</body>
+</html>
