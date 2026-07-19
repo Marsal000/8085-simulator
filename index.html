@@ -232,49 +232,9 @@
             .key.blue { font-size: 10px; padding: 0 2px; }
             .key span { font-size: 9px; }
         }
-
-        /* --- FULLSCREEN BUTTON --- */
-        .fullscreen-btn {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            background: #1e1e1e;
-            border: 1px solid #333;
-            color: #ccc;
-            padding: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 2px 4px 6px rgba(0,0,0,0.6);
-            transition: background 0.2s, transform 0.1s, color 0.2s, box-shadow 0.1s;
-        }
-        .fullscreen-btn:hover { 
-            background: #2a2a2a; 
-            color: #fff; 
-        }
-        .fullscreen-btn:active { 
-            background: #000; 
-            transform: translate(1px, 2px); 
-            box-shadow: 0 1px 1px rgba(0,0,0,0.6); 
-        }
-        .fullscreen-btn svg { width: 18px; height: 18px; }
-        
-        @media (min-width: 851px) {
-            .fullscreen-btn { top: 20px; right: 20px; padding: 12px; }
-            .fullscreen-btn svg { width: 22px; height: 22px; }
-        }
     </style>
 </head>
 <body>
-
-<button class="fullscreen-btn" id="fs-btn" title="Toggle Fullscreen">
-    <svg id="fs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-    </svg>
-</button>
 
 <div class="casing">
     <div class="pcb">
@@ -815,9 +775,6 @@
     // Boot up sequence
     setTimeout(resetSystem, 300);
 
-    const fsBtn = document.getElementById('fs-btn');
-    const fsIcon = document.getElementById('fs-icon');
-
     function toggleFullscreen() {
         let elem = document.documentElement;
         if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -835,14 +792,12 @@
         }
     }
 
-    fsBtn.addEventListener('click', toggleFullscreen);
-
     const pcbElement = document.querySelector('.pcb');
     let lastTapTime = 0;
     
     pcbElement.addEventListener('pointerup', (e) => {
         // Prevent fullscreen trigger if user is double-tapping keys rapidly
-        if (e.target.closest('.key') || e.target.closest('.fullscreen-btn')) return;
+        if (e.target.closest('.key')) return;
 
         const currentTime = new Date().getTime();
         const tapLength = currentTime - lastTapTime;
@@ -854,17 +809,6 @@
         }
         lastTapTime = currentTime;
     });
-
-    const updateFsBtn = () => {
-        if (document.fullscreenElement || document.webkitFullscreenElement) {
-            fsIcon.innerHTML = '<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>';
-        } else {
-            fsIcon.innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>';
-        }
-    };
-
-    document.addEventListener('fullscreenchange', updateFsBtn);
-    document.addEventListener('webkitfullscreenchange', updateFsBtn);
 
 </script>
 </body>
