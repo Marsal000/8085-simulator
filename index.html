@@ -213,9 +213,68 @@
             .key.blue { font-size: 13px; }
             .key span { font-size: 10px; }
         }
+
+        /* --- MOBILE LANDSCAPE MODE --- */
+        @media (max-width: 850px) and (orientation: landscape) {
+            .pcb { padding: 5px 10px; min-height: 100vh; flex-direction: row; }
+            .board-layout { width: 100%; flex-direction: row; }
+            .controls { flex-direction: row; max-width: 100%; justify-content: center; align-items: center; gap: 15px; }
+            
+            .display-housing { padding: 8px 10px; flex: 0 0 auto; }
+            .acrylic-plate { padding: 10px 12px; }
+            .digits-wrapper { font-size: 40px; gap: 10px; }
+            
+            .keypad { flex-direction: row; gap: 15px; flex: 1 1 auto; justify-content: center; }
+            .keys-blue { gap: 8px; flex: 1.2; }
+            .keys-black { gap: 8px; flex: 1.6; }
+            
+            .key { height: 45px; font-size: 16px; }
+            .key.blue { font-size: 10px; padding: 0 2px; }
+            .key span { font-size: 9px; }
+        }
+
+        /* --- FULLSCREEN BUTTON --- */
+        .fullscreen-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            color: #ccc;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 2px 4px 6px rgba(0,0,0,0.6);
+            transition: background 0.2s, transform 0.1s, color 0.2s, box-shadow 0.1s;
+        }
+        .fullscreen-btn:hover { 
+            background: #2a2a2a; 
+            color: #fff; 
+        }
+        .fullscreen-btn:active { 
+            background: #000; 
+            transform: translate(1px, 2px); 
+            box-shadow: 0 1px 1px rgba(0,0,0,0.6); 
+        }
+        .fullscreen-btn svg { width: 18px; height: 18px; }
+        
+        @media (min-width: 851px) {
+            .fullscreen-btn { top: 20px; right: 20px; padding: 12px; }
+            .fullscreen-btn svg { width: 22px; height: 22px; }
+        }
     </style>
 </head>
 <body>
+
+<button class="fullscreen-btn" id="fs-btn" title="Toggle Fullscreen">
+    <svg id="fs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+    </svg>
+</button>
 
 <div class="casing">
     <div class="pcb">
@@ -755,6 +814,37 @@
 
     // Boot up sequence
     setTimeout(resetSystem, 300);
+
+    const fsBtn = document.getElementById('fs-btn');
+    const fsIcon = document.getElementById('fs-icon');
+
+    fsBtn.addEventListener('click', () => {
+        let elem = document.documentElement;
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(() => {});
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) { /* Safari */
+                document.webkitExitFullscreen();
+            }
+        }
+    });
+
+    const updateFsBtn = () => {
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            fsIcon.innerHTML = '<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>';
+        } else {
+            fsIcon.innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>';
+        }
+    };
+
+    document.addEventListener('fullscreenchange', updateFsBtn);
+    document.addEventListener('webkitfullscreenchange', updateFsBtn);
 
 </script>
 </body>
