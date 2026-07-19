@@ -818,7 +818,7 @@
     const fsBtn = document.getElementById('fs-btn');
     const fsIcon = document.getElementById('fs-icon');
 
-    fsBtn.addEventListener('click', () => {
+    function toggleFullscreen() {
         let elem = document.documentElement;
         if (!document.fullscreenElement && !document.webkitFullscreenElement) {
             if (elem.requestFullscreen) {
@@ -833,6 +833,26 @@
                 document.webkitExitFullscreen();
             }
         }
+    }
+
+    fsBtn.addEventListener('click', toggleFullscreen);
+
+    const pcbElement = document.querySelector('.pcb');
+    let lastTapTime = 0;
+    
+    pcbElement.addEventListener('pointerup', (e) => {
+        // Prevent fullscreen trigger if user is double-tapping keys rapidly
+        if (e.target.closest('.key') || e.target.closest('.fullscreen-btn')) return;
+
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTapTime;
+        
+        // If tap is less than 400ms after the last one, it's a double tap
+        if (tapLength > 0 && tapLength < 400) {
+            toggleFullscreen();
+            e.preventDefault();
+        }
+        lastTapTime = currentTime;
     });
 
     const updateFsBtn = () => {
