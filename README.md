@@ -7,7 +7,7 @@ A realistic **8085 Microprocessor Kit Simulator** built using **HTML, CSS, and J
 # Live Demo
 
 ###  **Try the simulator here**
-**[https://your-username.github.io/your-repository-name/](https://marsal000.github.io/8085-simulator/)**
+**https://marsal000.github.io/8085-simulator/**
 
 
 ---
